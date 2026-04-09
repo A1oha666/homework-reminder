@@ -14,9 +14,11 @@ import (
 )
 
 var (
-	webhookURL = os.Getenv("FEISHU_WEBHOOK")
-	dataFile   = getEnv("DATA_FILE", "homework.json")
-	port       = getEnv("PORT", "8080")
+	webhookURL    = os.Getenv("FEISHU_WEBHOOK")
+	dataFile      = getEnv("DATA_FILE", "homework.json")
+	port          = getEnv("PORT", "8080")
+	authUsername  = getEnv("AUTH_USER", "admin")
+	authPassword  = getEnv("AUTH_PASS", "admin")
 )
 
 func getEnv(key, defaultVal string) string {
@@ -52,6 +54,11 @@ func main() {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 
+	// 认证中间件
+	auth := gin.BasicAuth(gin.Accounts{
+		authUsername: authPassword,
+	})
+
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index.html", nil)
 	})
@@ -60,9 +67,13 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	r.GET("/api/homework", listHomework)
-	r.POST("/api/homework", createHomework)
-	r.DELETE("/api/homework/:id", deleteHomework)
+	authorized := r.Group("/api")
+	authorized.Use(auth)
+	{
+		authorized.GET("/homework", listHomework)
+		authorized.POST("/homework", createHomework)
+		authorized.DELETE("/homework/:id", deleteHomework)
+	}
 
 	go startScheduler()
 
