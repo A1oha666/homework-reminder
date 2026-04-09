@@ -14,6 +14,7 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/homework-server .
 COPY homework.json .
+COPY templates/ ./templates/
 
 EXPOSE 8080
 
