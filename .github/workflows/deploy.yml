@@ -27,7 +27,10 @@ jobs:
 
       - name: Extract version
         id: extract-version
-        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "owner=$OWNER" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -35,10 +38,9 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.tag }}
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ steps.extract-version.outputs.owner }}/${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.tag }}
+            ghcr.io/${{ steps.extract-version.outputs.owner }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Output image info
         run: |
-          echo "Image built: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.tag }}"
-          echo "Latest: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest"
+          echo "Image: ghcr.io/${{ steps.extract-version.outputs.owner }}/${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.tag }}"
