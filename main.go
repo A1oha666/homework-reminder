@@ -14,11 +14,18 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	webhookURL  = "https://open.feishu.cn/open-apis/bot/v2/hook/2320b9a0-fa8d-481b-ac4d-8233358461c9"
-	dataFile    = "homework.json"
-	port        = "8080"
+var (
+	webhookURL = os.Getenv("FEISHU_WEBHOOK")
+	dataFile   = getEnv("DATA_FILE", "homework.json")
+	port       = getEnv("PORT", "8080")
 )
+
+func getEnv(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
+}
 
 type Homework struct {
 	ID        string `json:"id"`
@@ -36,6 +43,10 @@ type Store struct {
 var store *Store
 
 func main() {
+	if webhookURL == "" {
+		log.Fatal("FEISHU_WEBHOOK 环境变量未设置")
+	}
+
 	store = &Store{items: make(map[string]*Homework)}
 	store.load()
 
