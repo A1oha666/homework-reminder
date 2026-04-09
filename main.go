@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -30,7 +29,6 @@ func getEnv(key, defaultVal string) string {
 type Homework struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
-	Subject   string `json:"subject"`
 	Deadline  string `json:"deadline"`
 	CreatedAt string `json:"created_at"`
 }
@@ -52,6 +50,11 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.LoadHTMLGlob("templates/*")
+
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(200, "index.html", nil)
+	})
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
@@ -108,11 +111,7 @@ func checkAndNotify() {
 
 	names := make([]string, 0, len(toNotify))
 	for _, hw := range toNotify {
-		if hw.Subject != "" {
-			names = append(names, fmt.Sprintf("%s(%s)", hw.Name, hw.Subject))
-		} else {
-			names = append(names, hw.Name)
-		}
+		names = append(names, hw.Name)
 	}
 
 	msg := "提醒：" + joinStrings(names, "、")
@@ -196,7 +195,6 @@ func listHomework(c *gin.Context) {
 func createHomework(c *gin.Context) {
 	var req struct {
 		Name     string `json:"name" binding:"required"`
-		Subject  string `json:"subject"`
 		Deadline string `json:"deadline" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -207,7 +205,6 @@ func createHomework(c *gin.Context) {
 	hw := &Homework{
 		ID:        uuid.New().String(),
 		Name:      req.Name,
-		Subject:   req.Subject,
 		Deadline:  req.Deadline,
 		CreatedAt: time.Now().Format(time.RFC3339),
 	}
