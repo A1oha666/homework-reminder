@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  IMAGE_NAME: homework-reminder
+  IMAGE_NAME: homeworkreminder
 
 jobs:
   build-and-push:

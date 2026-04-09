@@ -1,8 +1,10 @@
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
-COPY main.go go.mod ./
+COPY go.mod go.sum ./
 RUN go mod download
+
+COPY main.go ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o homework-server main.go
 
 FROM alpine:latest
