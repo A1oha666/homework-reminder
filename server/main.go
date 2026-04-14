@@ -17,6 +17,7 @@ var (
 	webhookURL    = os.Getenv("FEISHU_WEBHOOK")
 	dataFile      = getEnv("DATA_FILE", "homework.json")
 	port          = getEnv("PORT", "8080")
+	authEnabled   = os.Getenv("AUTH_ENABLED") != "false"
 	authUsername  = getEnv("AUTH_USER", "admin")
 	authPassword  = getEnv("AUTH_PASS", "admin")
 )
@@ -54,25 +55,31 @@ func main() {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 
-	auth := gin.BasicAuth(gin.Accounts{
-		authUsername: authPassword,
-	})
-
-	r.GET("/", auth, func(c *gin.Context) {
-		c.HTML(200, "index.html", nil)
-	})
+	if authEnabled {
+		auth := gin.BasicAuth(gin.Accounts{
+			authUsername: authPassword,
+		})
+		r.GET("/", auth, func(c *gin.Context) {
+			c.HTML(200, "index.html", nil)
+		})
+		authorized := r.Group("/api", auth)
+		{
+			authorized.POST("/homework", createHomework)
+			authorized.DELETE("/homework/:id", deleteHomework)
+		}
+	} else {
+		r.GET("/", func(c *gin.Context) {
+			c.HTML(200, "index.html", nil)
+		})
+		r.POST("/api/homework", createHomework)
+		r.DELETE("/api/homework/:id", deleteHomework)
+	}
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
 	r.GET("/api/homework", listHomework)
-
-	authorized := r.Group("/api", auth)
-	{
-		authorized.POST("/homework", createHomework)
-		authorized.DELETE("/homework/:id", deleteHomework)
-	}
 
 	go startScheduler()
 
