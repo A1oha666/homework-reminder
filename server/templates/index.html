@@ -1,127 +1,394 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>作业提醒管理</title>
+<title>Homework</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, sans-serif; background: #f5f5f5; padding: 20px; }
-.container { max-width: 800px; margin: 0 auto; }
-h1 { margin-bottom: 20px; color: #333; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.form-group { margin-bottom: 12px; }
-.form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: #666; font-size: 14px; }
-.form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-.form-group input:focus { outline: none; border-color: #1890ff; }
-.btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-.btn-primary { background: #1890ff; color: #fff; }
-.btn-primary:hover { background: #40a9ff; }
-.btn-success { background: #52c41a; color: #fff; }
-.btn-success:hover { background: #73d13d; }
-.btn-danger { background: #ff4d4f; color: #fff; }
-.btn-danger:hover { background: #ff7875; }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-th { background: #fafafa; font-weight: 500; color: #666; }
-.tr-empty { text-align: center; color: #999; padding: 40px; }
-.tr-actions { text-align: right; }
-.deadline { color: #666; font-size: 13px; }
-.msg { padding: 10px; border-radius: 4px; margin-bottom: 16px; }
-.msg-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
-.msg-error { background: #fff2f0; border: 1px solid #ffccc7; color: #ff4d4f; }
+
+:root {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --text: #000000;
+  --text-secondary: #8e8e93;
+  --accent: #007aff;
+  --accent-tap: #0071e3;
+  --green: #34c759;
+  --red: #ff3b30;
+  --separator: rgba(60, 60, 67, 0.12);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.header {
+  padding: 60px 0 30px;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.header h1 {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+
+.header p {
+  font-size: 17px;
+  color: var(--text-secondary);
+}
+
+/* Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--green);
+  color: #fff;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* Form */
+.form-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  font-size: 17px;
+  background: var(--bg);
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+}
+
+.form-submit {
+  background: var(--accent);
+  color: #fff;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-submit:active {
+  background: var(--accent-tap);
+  transform: scale(0.98);
+}
+
+/* List */
+.list-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.list-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 10px;
+  background: var(--card);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  animation: slideIn 0.4s ease-out backwards;
+}
+
+.item:hover {
+  transform: translateX(4px);
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.item-deadline {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.item-delete {
+  padding: 8px 16px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.item:hover .item-delete {
+  opacity: 1;
+}
+
+.item-delete:active {
+  transform: scale(0.95);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  text-align: center;
+  max-width: 300px;
+}
+
+.toast.success {
+  background: var(--green);
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.error {
+  background: var(--red);
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>作业提醒管理</h1>
-    <button class="btn btn-success" onclick="sendRemind()">发送提醒</button>
+    <h1>Homework</h1>
+    <p id="subtitle">Loading...</p>
   </div>
 
+  <button class="btn" onclick="sendRemind()">
+    <span>Send Reminder</span>
+  </button>
+
   <div class="card">
-    <div id="msg-box"></div>
+    <div class="form-title">Add Homework</div>
     <form id="add-form">
       <div class="form-group">
-        <label>作业内容</label>
-        <input type="text" name="name" required placeholder="例如：高数第二章作业">
+        <label>Title</label>
+        <input type="text" name="name" required placeholder="e.g., Math Chapter 2">
       </div>
       <div class="form-group">
-        <label>截止日期</label>
+        <label>Deadline</label>
         <input type="date" name="deadline" required>
       </div>
-      <button type="submit" class="btn btn-primary">添加</button>
+      <button type="submit" class="form-submit">Add</button>
     </form>
   </div>
 
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>作业</th>
-          <th>截止日期</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="hw-list"></tbody>
-    </table>
-  </div>
+  <div class="list-title">Homework List</div>
+  <div id="hw-list"></div>
 </div>
+
+<div id="toast" class="toast"></div>
 
 <script>
 const API = '/api/homework';
 
-function showMsg(text, type) {
-  const box = document.getElementById('msg-box');
-  box.className = 'msg msg-' + type;
-  box.textContent = text;
-  setTimeout(() => box.textContent = '', 3000);
+function showToast(text, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.className = 'toast ' + type;
+  setTimeout(() => {
+    toast.className = 'toast';
+  }, 3000);
+}
+
+function updateSubtitle() {
+  const now = new Date();
+  const options = { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  document.getElementById('subtitle').textContent = now.toLocaleDateString('en-US', options);
 }
 
 function loadList() {
-  fetch(API).then(r => r.json()).then(r => {
-    const list = r.data || [];
-    const tbody = document.getElementById('hw-list');
-    if (list.length === 0) {
-      tbody.innerHTML = '<tr class="tr-empty"><td colspan="3">暂无作业</td></tr>';
-      return;
-    }
-    tbody.innerHTML = list.map(hw => '
-      <tr>
-        <td><strong>' + hw.name + '</strong></td>
-        <td class="deadline">' + hw.deadline + '</td>
-        <td class="tr-actions">
-          <button class="btn btn-danger btn-sm" onclick="deleteHw(\'' + hw.id + '\')">删除</button>
-        </td>
-      </tr>
-    ').join('');
-  });
+  fetch(API)
+    .then(r => r.json())
+    .then(r => {
+      if (r.code !== 0 || !r.data) {
+        showToast('Failed to load', 'error');
+        return;
+      }
+
+      const list = r.data;
+      const container = document.getElementById('hw-list');
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="list-empty">No homework yet</div>';
+        return;
+      }
+
+      list.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+      container.innerHTML = list.map((hw, i) => `
+        <div class="item" style="animation-delay: ${i * 0.05}s">
+          <div class="item-info">
+            <div class="item-name">${escapeHtml(hw.name)}</div>
+            <div class="item-deadline">Due: ${hw.deadline}</div>
+          </div>
+          <button class="item-delete" onclick="deleteHw('${hw.id}')">Delete</button>
+        </div>
+      `).join('');
+    })
+    .catch(() => {
+      showToast('Network error', 'error');
+    });
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function deleteHw(id) {
-  if (!confirm('确认删除？')) return;
-  fetch(API + '/' + id, { method: 'DELETE' }).then(r => r.json()).then(r => {
-    if (r.code === 0) {
-      showMsg('删除成功', 'success');
-      loadList();
-    } else {
-      showMsg(r.msg || '删除失败', 'error');
-    }
-  });
+  if (!confirm('Delete this homework?')) return;
+  fetch(API + '/' + id, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(r => {
+      if (r.code === 0) {
+        showToast('Deleted', 'success');
+        loadList();
+      } else {
+        showToast(r.msg || 'Failed', 'error');
+      }
+    });
 }
 
 function sendRemind() {
-  fetch('/api/remind', { method: 'POST' }).then(r => r.json()).then(r => {
-    if (r.code === 0) {
-      showMsg('提醒已发送', 'success');
-    } else {
-      showMsg(r.msg || '发送失败', 'error');
-    }
-  }).catch(err => {
-    showMsg('发送失败: ' + err.message, 'error');
-  });
+  fetch('/api/remind', { method: 'POST' })
+    .then(r => r.json())
+    .then(r => {
+      if (r.code === 0) {
+        showToast('Reminder sent!', 'success');
+      } else {
+        showToast(r.msg || 'Failed', 'error');
+      }
+    })
+    .catch(err => {
+      showToast('Failed: ' + err.message, 'error');
+    });
 }
 
 document.getElementById('add-form').onsubmit = function(e) {
@@ -132,17 +399,20 @@ document.getElementById('add-form').onsubmit = function(e) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  }).then(r => r.json()).then(r => {
-    if (r.code === 0) {
-      showMsg('添加成功', 'success');
-      this.reset();
-      loadList();
-    } else {
-      showMsg(r.msg || '添加失败', 'error');
-    }
-  });
+  })
+    .then(r => r.json())
+    .then(r => {
+      if (r.code === 0) {
+        showToast('Added', 'success');
+        this.reset();
+        loadList();
+      } else {
+        showToast(r.msg || 'Failed', 'error');
+      }
+    });
 };
 
+updateSubtitle();
 loadList();
 </script>
 </body>
