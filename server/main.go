@@ -200,15 +200,13 @@ func sendRemind(c *gin.Context) {
 			names = append(names, hw.Name)
 		}
 		msg = "提醒：" + joinStrings(names, "、")
-	} else {
+	} else if len(allList) > 0 {
 		for _, hw := range allList {
 			names = append(names, hw.Name+"("+hw.Deadline+")")
 		}
-		if len(names) > 0 {
-			msg = "所有作业：\n" + joinStrings(names, "\n")
-		} else {
-			msg = "暂无作业"
-		}
+		msg = "提醒（暂无今日截止）：\n" + joinStrings(names, "\n")
+	} else {
+		msg = "提醒：暂无作业"
 	}
 
 	if err := sendMessage(msg); err != nil {
