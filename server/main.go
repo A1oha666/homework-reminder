@@ -78,7 +78,6 @@ func main() {
 		{
 			authorized.POST("/homework", createHomework)
 			authorized.DELETE("/homework/:id", deleteHomework)
-			authorized.POST("/remind", sendRemind)
 		}
 	} else {
 		r.GET("/", func(c *gin.Context) {
@@ -87,6 +86,9 @@ func main() {
 		r.POST("/api/homework", createHomework)
 		r.DELETE("/api/homework/:id", deleteHomework)
 	}
+
+	// 提醒接口公开
+	r.POST("/api/remind", sendRemind)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
