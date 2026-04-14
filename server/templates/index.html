@@ -9,6 +9,7 @@
 body { font-family: -apple-system, sans-serif; background: #f5f5f5; padding: 20px; }
 .container { max-width: 800px; margin: 0 auto; }
 h1 { margin-bottom: 20px; color: #333; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .form-group { margin-bottom: 12px; }
 .form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: #666; font-size: 14px; }
@@ -17,6 +18,8 @@ h1 { margin-bottom: 20px; color: #333; }
 .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
 .btn-primary { background: #1890ff; color: #fff; }
 .btn-primary:hover { background: #40a9ff; }
+.btn-success { background: #52c41a; color: #fff; }
+.btn-success:hover { background: #73d13d; }
 .btn-danger { background: #ff4d4f; color: #fff; }
 .btn-danger:hover { background: #ff7875; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
@@ -25,7 +28,6 @@ th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
 th { background: #fafafa; font-weight: 500; color: #666; }
 .tr-empty { text-align: center; color: #999; padding: 40px; }
 .tr-actions { text-align: right; }
-.tag { display: inline-block; padding: 2px 8px; background: #e6f7ff; color: #1890ff; border-radius: 4px; font-size: 12px; margin-right: 8px; }
 .deadline { color: #666; font-size: 13px; }
 .msg { padding: 10px; border-radius: 4px; margin-bottom: 16px; }
 .msg-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
@@ -34,7 +36,10 @@ th { background: #fafafa; font-weight: 500; color: #666; }
 </head>
 <body>
 <div class="container">
-  <h1>作业提醒管理</h1>
+  <div class="header">
+    <h1>作业提醒管理</h1>
+    <button class="btn btn-success" onclick="sendRemind()">发送提醒</button>
+  </div>
 
   <div class="card">
     <div id="msg-box"></div>
@@ -83,15 +88,15 @@ function loadList() {
       tbody.innerHTML = '<tr class="tr-empty"><td colspan="3">暂无作业</td></tr>';
       return;
     }
-    tbody.innerHTML = list.map(hw => `
+    tbody.innerHTML = list.map(hw => '
       <tr>
-        <td><strong>${hw.name}</strong></td>
-        <td class="deadline">${hw.deadline}</td>
+        <td><strong>' + hw.name + '</strong></td>
+        <td class="deadline">' + hw.deadline + '</td>
         <td class="tr-actions">
-          <button class="btn btn-danger btn-sm" onclick="deleteHw('${hw.id}')">删除</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteHw(\'' + hw.id + '\')">删除</button>
         </td>
       </tr>
-    `).join('');
+    ').join('');
   });
 }
 
@@ -104,6 +109,18 @@ function deleteHw(id) {
     } else {
       showMsg(r.msg || '删除失败', 'error');
     }
+  });
+}
+
+function sendRemind() {
+  fetch('/api/remind', { method: 'POST' }).then(r => r.json()).then(r => {
+    if (r.code === 0) {
+      showMsg('提醒已发送', 'success');
+    } else {
+      showMsg(r.msg || '发送失败', 'error');
+    }
+  }).catch(err => {
+    showMsg('发送失败: ' + err.message, 'error');
   });
 }
 

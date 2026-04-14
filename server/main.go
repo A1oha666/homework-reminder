@@ -78,6 +78,7 @@ func main() {
 		{
 			authorized.POST("/homework", createHomework)
 			authorized.DELETE("/homework/:id", deleteHomework)
+			authorized.POST("/remind", sendRemind)
 		}
 	} else {
 		r.GET("/", func(c *gin.Context) {
@@ -174,6 +175,45 @@ func sendMessage(text string) error {
 	}
 	defer resp.Body.Close()
 	return nil
+}
+
+func sendRemind(c *gin.Context) {
+	store.mu.RLock()
+	today := time.Now().Format("2006-01-02")
+	var todayList []*Homework
+	var allList []*Homework
+	for _, hw := range store.items {
+		allList = append(allList, hw)
+		if hw.Deadline == today {
+			todayList = append(todayList, hw)
+		}
+	}
+	store.mu.RUnlock()
+
+	var names []string
+	var msg string
+
+	if len(todayList) > 0 {
+		for _, hw := range todayList {
+			names = append(names, hw.Name)
+		}
+		msg = "提醒：" + joinStrings(names, "、")
+	} else {
+		for _, hw := range allList {
+			names = append(names, hw.Name+"("+hw.Deadline+")")
+		}
+		if len(names) > 0 {
+			msg = "所有作业：\n" + joinStrings(names, "\n")
+		} else {
+			msg = "暂无作业"
+		}
+	}
+
+	if err := sendMessage(msg); err != nil {
+		c.JSON(500, gin.H{"code": 1, "msg": "发送失败: " + err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"code": 0, "msg": "发送成功"})
 }
 
 func (s *Store) load() {
