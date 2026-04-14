@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -176,6 +177,17 @@ func sendMessage(text string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	// 检查飞书响应
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return err
+	}
+
+	if code, ok := result["code"].(float64); ok && code != 0 {
+		return fmt.Errorf("飞书返回错误: %v", result["msg"])
+	}
+
 	return nil
 }
 
