@@ -48,11 +48,12 @@ func main() {
 	}
 
 	store = &Store{items: make(map[string]*Homework)}
+	store.load()
+
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 
-	// 认证中间件（仅用于管理面板）
 	auth := gin.BasicAuth(gin.Accounts{
 		authUsername: authPassword,
 	})
@@ -65,16 +66,10 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// API 公开访问
 	r.GET("/api/homework", listHomework)
 
-	// 修改和删除需要认证
 	authorized := r.Group("/api", auth)
 	{
-		authorized.POST("/homework", createHomework)
-		authorized.DELETE("/homework/:id", deleteHomework)
-	}
-		authorized.GET("/homework", listHomework)
 		authorized.POST("/homework", createHomework)
 		authorized.DELETE("/homework/:id", deleteHomework)
 	}
@@ -88,7 +83,6 @@ func main() {
 }
 
 func startScheduler() {
-	// 计算距离下一个 22:00 的时间
 	now := time.Now()
 	next22 := time.Date(now.Year(), now.Month(), now.Day(), 22, 0, 0, 0, now.Location())
 	if now.After(next22) {
@@ -97,11 +91,9 @@ func startScheduler() {
 	initialDelay := time.Until(next22)
 	log.Printf("距离下次发送还有: %v", initialDelay)
 
-	// 等待直到 22:00
 	time.Sleep(initialDelay)
 	checkAndNotify()
 
-	// 然后每 24 小时执行一次
 	ticker := time.NewTicker(24 * time.Hour)
 	for range ticker.C {
 		checkAndNotify()
@@ -165,8 +157,6 @@ func sendMessage(text string) error {
 	return nil
 }
 
-// ---- Store ----
-
 func (s *Store) load() {
 	data, err := os.ReadFile(dataFile)
 	if err != nil {
@@ -194,8 +184,6 @@ func (s *Store) save() error {
 	}
 	return os.WriteFile(dataFile, data, 0644)
 }
-
-// ---- Handlers ----
 
 func listHomework(c *gin.Context) {
 	store.mu.RLock()
