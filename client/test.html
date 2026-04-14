@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作业提醒 - 测试</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; padding: 20px; }
+.container { max-width: 500px; margin: 0 auto; }
+h1 { color: #333; text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 600; }
+.item { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.item-name { font-size: 16px; font-weight: 500; color: #333; margin-bottom: 6px; }
+.item-deadline { font-size: 13px; color: #999; margin-bottom: 4px; }
+.item-time { font-size: 14px; font-weight: 500; }
+.item-time.normal { color: #333; }
+.item-time.urgent { color: #ff6b6b; }
+.item-time.overdue { color: #bbb; text-decoration: line-through; }
+.empty { text-align: center; color: #999; padding: 40px; font-size: 15px; }
+.loading { text-align: center; color: #999; padding: 20px; font-size: 15px; }
+.error { background: #ffe; color: #c00; padding: 12px; border-radius: 8px; text-align: center; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>作业提醒</h1>
+  <div id="content"></div>
+</div>
+
+<script>
+const API = 'https://hbiwuhfgarke.ap-southeast-1.clawcloudrun.com/api/homework';
+
+function formatTime(deadline) {
+  const now = new Date();
+  const deadlineDate = new Date(deadline + 'T23:00:00');
+  const diff = deadlineDate - now;
+
+  if (diff < 0) {
+    const days = Math.abs(Math.floor(diff / (1000*60*60*24)));
+    return { text: '已截止 ' + days + ' 天', urgent: false, overdue: true };
+  }
+
+  const hours = Math.floor(diff / (1000*60*60));
+  const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return { text: days + ' 天后截止', urgent: false, overdue: false };
+  } else if (hours > 0) {
+    return { text: hours + ' 小时 ' + minutes + ' 分钟', urgent: true, overdue: false };
+  } else {
+    return { text: minutes + ' 分钟后截止', urgent: true, overdue: false };
+  }
+}
+
+function render() {
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="loading">加载中...</div>';
+
+  fetch(API)
+    .then(r => r.json())
+    .then(r => {
+      if (r.code !== 0 || !r.data) {
+        content.innerHTML = '<div class="error">加载失败: ' + (r.msg || '未知错误') + '</div>';
+        return;
+      }
+
+      const list = r.data;
+      if (list.length === 0) {
+        content.innerHTML = '<div class="empty">暂无作业</div>';
+        return;
+      }
+
+      list.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+      content.innerHTML = list.map(hw => {
+        const time = formatTime(hw.deadline);
+        const timeClass = time.overdue ? 'overdue' : time.urgent ? 'urgent' : 'normal';
+        return '<div class="item"><div class="item-name">' + hw.name + '</div><div class="item-deadline">截止: ' + hw.deadline + '</div><div class="item-time ' + timeClass + '">' + time.text + '</div></div>';
+      }).join('');
+    })
+    .catch(err => {
+      content.innerHTML = '<div class="error">网络错误: ' + err.message + '</div>';
+    });
+}
+
+render();
+</script>
+</body>
+</html>
