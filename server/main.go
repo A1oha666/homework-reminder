@@ -48,18 +48,16 @@ func main() {
 	}
 
 	store = &Store{items: make(map[string]*Homework)}
-	store.load()
-
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 
-	// 认证中间件
+	// 认证中间件（仅用于管理面板）
 	auth := gin.BasicAuth(gin.Accounts{
 		authUsername: authPassword,
 	})
 
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/", auth, func(c *gin.Context) {
 		c.HTML(200, "index.html", nil)
 	})
 
@@ -67,9 +65,15 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	authorized := r.Group("/api")
-	authorized.Use(auth)
+	// API 公开访问
+	r.GET("/api/homework", listHomework)
+
+	// 修改和删除需要认证
+	authorized := r.Group("/api", auth)
 	{
+		authorized.POST("/homework", createHomework)
+		authorized.DELETE("/homework/:id", deleteHomework)
+	}
 		authorized.GET("/homework", listHomework)
 		authorized.POST("/homework", createHomework)
 		authorized.DELETE("/homework/:id", deleteHomework)
