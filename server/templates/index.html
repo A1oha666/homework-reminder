@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作业提醒管理</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #f5f5f5; padding: 20px; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { margin-bottom: 20px; color: #333; }
+.card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: #666; font-size: 14px; }
+.form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+.form-group input:focus { outline: none; border-color: #1890ff; }
+.btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.btn-primary { background: #1890ff; color: #fff; }
+.btn-primary:hover { background: #40a9ff; }
+.btn-danger { background: #ff4d4f; color: #fff; }
+.btn-danger:hover { background: #ff7875; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #fafafa; font-weight: 500; color: #666; }
+.tr-empty { text-align: center; color: #999; padding: 40px; }
+.tr-actions { text-align: right; }
+.tag { display: inline-block; padding: 2px 8px; background: #e6f7ff; color: #1890ff; border-radius: 4px; font-size: 12px; margin-right: 8px; }
+.deadline { color: #666; font-size: 13px; }
+.msg { padding: 10px; border-radius: 4px; margin-bottom: 16px; }
+.msg-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+.msg-error { background: #fff2f0; border: 1px solid #ffccc7; color: #ff4d4f; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>作业提醒管理</h1>
+
+  <div class="card">
+    <div id="msg-box"></div>
+    <form id="add-form">
+      <div class="form-group">
+        <label>作业内容</label>
+        <input type="text" name="name" required placeholder="例如：高数第二章作业">
+      </div>
+      <div class="form-group">
+        <label>截止日期</label>
+        <input type="date" name="deadline" required>
+      </div>
+      <button type="submit" class="btn btn-primary">添加</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>作业</th>
+          <th>截止日期</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="hw-list"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const API = '/api/homework';
+
+function showMsg(text, type) {
+  const box = document.getElementById('msg-box');
+  box.className = 'msg msg-' + type;
+  box.textContent = text;
+  setTimeout(() => box.textContent = '', 3000);
+}
+
+function loadList() {
+  fetch(API).then(r => r.json()).then(r => {
+    const list = r.data || [];
+    const tbody = document.getElementById('hw-list');
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr class="tr-empty"><td colspan="3">暂无作业</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(hw => `
+      <tr>
+        <td><strong>${hw.name}</strong></td>
+        <td class="deadline">${hw.deadline}</td>
+        <td class="tr-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteHw('${hw.id}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  });
+}
+
+function deleteHw(id) {
+  if (!confirm('确认删除？')) return;
+  fetch(API + '/' + id, { method: 'DELETE' }).then(r => r.json()).then(r => {
+    if (r.code === 0) {
+      showMsg('删除成功', 'success');
+      loadList();
+    } else {
+      showMsg(r.msg || '删除失败', 'error');
+    }
+  });
+}
+
+document.getElementById('add-form').onsubmit = function(e) {
+  e.preventDefault();
+  const fd = new FormData(this);
+  const data = { name: fd.get('name'), deadline: fd.get('deadline') };
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(r => r.json()).then(r => {
+    if (r.code === 0) {
+      showMsg('添加成功', 'success');
+      this.reset();
+      loadList();
+    } else {
+      showMsg(r.msg || '添加失败', 'error');
+    }
+  });
+};
+
+loadList();
+</script>
+</body>
+</html>

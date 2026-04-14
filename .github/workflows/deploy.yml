@@ -35,7 +35,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./server
           push: true
           tags: |
             ghcr.io/${{ steps.extract-version.outputs.owner }}/${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.tag }}

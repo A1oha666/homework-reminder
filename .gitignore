@@ -1,1 +1,24 @@
-homework-server
+# macOS
+.DS_Store
+
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.idea/
+.vscode/
+*.xcworkspace
+*.xcodeproj
+
+# iOS
+Pods/
+build/
+*.ipa
+*.app
+*.mobileprovision
+
+# Misc
+*.log
