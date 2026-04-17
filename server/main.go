@@ -106,13 +106,20 @@ func main() {
 }
 
 func startScheduler() {
+	// 使用北京时间
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		log.Printf("无法加载北京时区，使用本地时区: %v", err)
+		loc = time.Local
+	}
+
 	now := time.Now()
-	next22 := time.Date(now.Year(), now.Month(), now.Day(), 22, 0, 0, 0, now.Location())
+	next22 := time.Date(now.Year(), now.Month(), now.Day(), 22, 0, 0, 0, loc)
 	if now.After(next22) {
 		next22 = next22.Add(24 * time.Hour)
 	}
 	initialDelay := time.Until(next22)
-	log.Printf("距离下次发送还有: %v", initialDelay)
+	log.Printf("下次发送时间: %s，距现在 %v", next22.Format("2006-01-02 15:04:05"), initialDelay)
 
 	time.Sleep(initialDelay)
 	checkAndNotify()
@@ -272,6 +279,7 @@ func createHomework(c *gin.Context) {
 		Deadline string `json:"deadline" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("添加作业失败: 参数错误 - %v", err)
 		c.JSON(400, gin.H{"code": 1, "msg": "参数错误"})
 		return
 	}
@@ -288,9 +296,13 @@ func createHomework(c *gin.Context) {
 	store.mu.Unlock()
 
 	if err := store.save(); err != nil {
+		log.Printf("添加作业失败: %s - %v", hw.Name, err)
 		c.JSON(500, gin.H{"code": 1, "msg": "保存失败"})
 		return
 	}
+
+	log.Printf("添加作业成功: %s (截止 %s)", hw.Name, hw.Deadline)
+	c.JSON(200, gin.H{"code": 0, "data": hw})
 
 	c.JSON(200, gin.H{"code": 0, "data": hw})
 }
