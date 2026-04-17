@@ -250,11 +250,9 @@ func (s *Store) load() {
 
 func (s *Store) save() error {
 	items := make([]*Homework, 0, len(s.items))
-	s.mu.RLock()
 	for _, hw := range s.items {
 		items = append(items, hw)
 	}
-	s.mu.RUnlock()
 
 	data, err := json.Marshal(items)
 	if err != nil {
