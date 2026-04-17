@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o homework-server main.go
 
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates tzdata
+RUN apk --no-cache add ca-certificates tzdata && mkdir -p /data
 
 WORKDIR /app
 COPY --from=builder /app/homework-server .
