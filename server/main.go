@@ -114,7 +114,7 @@ func startScheduler() {
 	}
 
 	now := time.Now()
-	next22 := time.Date(now.Year(), now.Month(), now.Day(), 22, 0, 0, 0, loc)
+	next22 := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, loc)
 	if now.After(next22) {
 		next22 = next22.Add(24 * time.Hour)
 	}
