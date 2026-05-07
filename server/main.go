@@ -114,12 +114,12 @@ func startScheduler() {
 	}
 
 	now := time.Now()
-	next22 := time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, loc)
-	if now.After(next22) {
-		next22 = next22.Add(24 * time.Hour)
+	next18 := time.Date(now.Year(), now.Month(), now.Day(), 18, 0, 0, 0, loc)
+	if now.After(next18) {
+		next18 = next18.Add(24 * time.Hour)
 	}
-	initialDelay := time.Until(next22)
-	log.Printf("下次发送时间: %s，距现在 %v", next22.Format("2006-01-02 15:04:05"), initialDelay)
+	initialDelay := time.Until(next18)
+	log.Printf("下次发送时间: %s，距现在 %v", next18.Format("2006-01-02 15:04:05"), initialDelay)
 
 	time.Sleep(initialDelay)
 	checkAndNotify()
@@ -132,23 +132,35 @@ func startScheduler() {
 
 func checkAndNotify() {
 	store.mu.RLock()
-	today := time.Now().Format("2006-01-02")
+	now := time.Now()
+	weekLater := now.AddDate(0, 0, 7)
+	todayStr := now.Format("2006-01-02")
+
 	var toNotify []*Homework
 	for _, hw := range store.items {
-		if hw.Deadline == today {
+		hwDate, err := time.Parse("2006-01-02", hw.Deadline)
+		if err != nil {
+			continue
+		}
+		// 只提醒今天到一周内的作业
+		if !hwDate.Before(now.Truncate(24*time.Hour)) && !hwDate.After(weekLater) {
 			toNotify = append(toNotify, hw)
 		}
 	}
 	store.mu.RUnlock()
 
 	if len(toNotify) == 0 {
-		log.Println("今天没有需要提交的作业")
+		log.Println("没有需要提醒的作业")
 		return
 	}
 
 	names := make([]string, 0, len(toNotify))
 	for _, hw := range toNotify {
-		names = append(names, hw.Name)
+		if hw.Deadline == todayStr {
+			names = append(names, hw.Name)
+		} else {
+			names = append(names, hw.Name+"("+hw.Deadline+")")
+		}
 	}
 
 	msg := "提醒：" + joinStrings(names, "、")
@@ -199,17 +211,24 @@ func sendMessage(text string) error {
 }
 
 func sendRemind(c *gin.Context) {
-	store.mu.RLock()
-	today := time.Now().Format("2006-01-02")
+	now := time.Now()
+	weekLater := now.AddDate(0, 0, 7)
+	todayStr := now.Format("2006-01-02")
+
 	var todayList []*Homework
 	var allList []*Homework
 	for _, hw := range store.items {
-		allList = append(allList, hw)
-		if hw.Deadline == today {
-			todayList = append(todayList, hw)
+		hwDate, err := time.Parse("2006-01-02", hw.Deadline)
+		if err != nil {
+			continue
+		}
+		if !hwDate.Before(now.Truncate(24*time.Hour)) && !hwDate.After(weekLater) {
+			allList = append(allList, hw)
+			if hw.Deadline == todayStr {
+				todayList = append(todayList, hw)
+			}
 		}
 	}
-	store.mu.RUnlock()
 
 	var names []string
 	var msg string
@@ -300,8 +319,6 @@ func createHomework(c *gin.Context) {
 	}
 
 	log.Printf("添加作业成功: %s (截止 %s)", hw.Name, hw.Deadline)
-	c.JSON(200, gin.H{"code": 0, "data": hw})
-
 	c.JSON(200, gin.H{"code": 0, "data": hw})
 }
 
