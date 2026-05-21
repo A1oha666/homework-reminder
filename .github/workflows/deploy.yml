@@ -75,7 +75,7 @@ jobs:
               '${{ secrets.AUTH_ENABLED }}' \
               '${{ secrets.AUTH_USER }}' \
               '${{ secrets.AUTH_PASS }}' > .env
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker logout ghcr.io || true
             docker pull ghcr.io/a1oha666/${{ env.IMAGE_NAME }}:latest
             docker compose up -d
             docker image prune -f
