@@ -1,0 +1,19 @@
+services:
+  homework-server:
+    image: ghcr.io/a1oha666/homeworkreminder:latest
+    container_name: homework-server
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      - FEISHU_WEBHOOK=${FEISHU_WEBHOOK}
+      - DATA_FILE=/data/homework.json
+      - AUTH_ENABLED=${AUTH_ENABLED:-true}
+      - AUTH_USER=${AUTH_USER:-admin}
+      - AUTH_PASS=${AUTH_PASS:-admin}
+      - TZ=Asia/Shanghai
+    volumes:
+      - homework-data:/data
+
+volumes:
+  homework-data:
