@@ -17,12 +17,8 @@
 
 ### 客户端
 - **OpenClaw Skill**: 自然语言管理作业
-- **iOS**: Swift + UIKit，原生 Auto Layout
+- **iOS**: Swift + UIKit
 - **管理面板**: HTML + CSS + JavaScript
-
-### AI 工具
-- Claude Code（服务端、CI/CD、问题排查）
-- MiniMax-M2.7（iOS 应用、页面优化）
 
 ## 目录结构
 
